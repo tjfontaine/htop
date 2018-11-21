@@ -15,9 +15,9 @@ in the source distribution for its full text.
 
 }*/
 
-ProcessList* ProcessList_new(UsersTable* usersTable, Hashtable* pidWhiteList, uid_t userId) {
+ProcessList* ProcessList_new(UsersTable* usersTable, Hashtable* pidWhiteList, uid_t userId, unsigned int attachToId) {
    ProcessList* this = xCalloc(1, sizeof(ProcessList));
-   ProcessList_init(this, Class(Process), usersTable, pidWhiteList, userId);
+   ProcessList_init(this, Class(Process), usersTable, pidWhiteList, userId, attachToId);
    
    return this;
 }

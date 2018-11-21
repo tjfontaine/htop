@@ -89,12 +89,12 @@ static int MIB_kern_cp_time[2];
 static int MIB_kern_cp_times[2];
 static int kernelFScale;
 
-ProcessList* ProcessList_new(UsersTable* usersTable, Hashtable* pidWhiteList, uid_t userId) {
+ProcessList* ProcessList_new(UsersTable* usersTable, Hashtable* pidWhiteList, uid_t userId, unsigned int attachToId) {
    size_t len;
    char errbuf[_POSIX2_LINE_MAX];
    DragonFlyBSDProcessList* dfpl = xCalloc(1, sizeof(DragonFlyBSDProcessList));
    ProcessList* pl = (ProcessList*) dfpl;
-   ProcessList_init(pl, Class(DragonFlyBSDProcess), usersTable, pidWhiteList, userId);
+   ProcessList_init(pl, Class(DragonFlyBSDProcess), usersTable, pidWhiteList, userId, attachToId);
 
    // physical memory in system: hw.physmem
    // physical page size: hw.pagesize
@@ -432,6 +432,10 @@ void ProcessList_goThroughEntries(ProcessList* this) {
       DragonFlyBSDProcess* dfp = (DragonFlyBSDProcess*) proc;
 
       proc->show = ! ((hideKernelThreads && Process_isKernelThread(dfp)) || (hideUserlandThreads && Process_isUserlandThread(proc)));
+
+      if (this->attachToId > 0 && kproc->kp_jailid != this->attachToId) {
+         this->show = false;
+      }
 
       if (!preExisting) {
          dfp->jid = kproc->kp_jailid;

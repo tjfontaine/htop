@@ -11,7 +11,7 @@ in the source distribution for its full text.
 
 
 
-ProcessList* ProcessList_new(UsersTable* usersTable, Hashtable* pidWhiteList, uid_t userId);
+ProcessList* ProcessList_new(UsersTable* usersTable, Hashtable* pidWhiteList, uid_t userId, unsigned int attachToId);
 
 void ProcessList_delete(ProcessList* this);
 

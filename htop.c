@@ -45,6 +45,8 @@ static void printHelpFlag() {
          "-t --tree                   Show the tree view by default\n"
          "-u --user=USERNAME          Show only processes of a given user\n"
          "-p --pid=PID,[,PID,PID...]  Show only the given PIDs\n"
+         "-A --attach=ID              Show only processes for given ID\n"
+         "                            PID on Linux, Jail or Zone ID on BSDs or Solaris\n"
          "-v --version                Print version info\n"
          "\n"
          "Long options may be passed with a single dash.\n\n"
@@ -63,6 +65,7 @@ typedef struct CommandLineSettings_ {
    int delay;
    bool useColors;
    bool treeView;
+   unsigned int attachToId;
 } CommandLineSettings;
 
 static CommandLineSettings parseArguments(int argc, char** argv) {
@@ -74,6 +77,7 @@ static CommandLineSettings parseArguments(int argc, char** argv) {
       .delay = -1,
       .useColors = true,
       .treeView = false,
+      .attachToId = 0,
    };
 
    static struct option long_opts[] =
@@ -87,12 +91,13 @@ static CommandLineSettings parseArguments(int argc, char** argv) {
       {"no-colour",no_argument,         0, 'C'},
       {"tree",     no_argument,         0, 't'},
       {"pid",      required_argument,   0, 'p'},
+      {"attach",   required_argument,   0, 'A'},
       {0,0,0,0}
    };
 
    int opt, opti=0;
    /* Parse arguments */
-   while ((opt = getopt_long(argc, argv, "hvCs:td:u:p:", long_opts, &opti))) {
+   while ((opt = getopt_long(argc, argv, "hvCs:td:u:p:A:", long_opts, &opti))) {
       if (opt == EOF) break;
       switch (opt) {
          case 'h':
@@ -151,6 +156,10 @@ static CommandLineSettings parseArguments(int argc, char** argv) {
 
             break;
          }
+         case 'A':
+            // use stroul and handle errors?
+            flags.attachToId = atoi(optarg);
+            break;
          default:
             exit(1);
       }
@@ -190,7 +199,7 @@ int main(int argc, char** argv) {
    Process_setupColumnWidths();
    
    UsersTable* ut = UsersTable_new();
-   ProcessList* pl = ProcessList_new(ut, flags.pidWhiteList, flags.userId);
+   ProcessList* pl = ProcessList_new(ut, flags.pidWhiteList, flags.userId, flags.attachToId);
    
    Settings* settings = Settings_new(pl->cpuCount);
    pl->settings = settings;

@@ -62,11 +62,13 @@ typedef struct LinuxProcessList_ {
    
    CPUData* cpus;
    TtyDriver* ttyDrivers;
-   
+
    #ifdef HAVE_DELAYACCT
    struct nl_sock *netlink_socket;
    int netlink_family;
    #endif
+
+    char procPrefix[MAX_NAME];
 } LinuxProcessList;
 
 #ifndef PROCDIR
@@ -98,7 +100,7 @@ typedef struct LinuxProcessList_ {
 
 #endif
 
-ProcessList* ProcessList_new(UsersTable* usersTable, Hashtable* pidWhiteList, uid_t userId);
+ProcessList* ProcessList_new(UsersTable* usersTable, Hashtable* pidWhiteList, uid_t userId, unsigned int attachToId);
 
 void ProcessList_delete(ProcessList* pl);
 

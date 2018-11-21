@@ -72,10 +72,10 @@ char* SolarisProcessList_readZoneName(kstat_ctl_t* kd, SolarisProcess* sproc) {
   return zname;
 }
 
-ProcessList* ProcessList_new(UsersTable* usersTable, Hashtable* pidWhiteList, uid_t userId) {
+ProcessList* ProcessList_new(UsersTable* usersTable, Hashtable* pidWhiteList, uid_t userId, unsigned int attachToId) {
    SolarisProcessList* spl = xCalloc(1, sizeof(SolarisProcessList));
    ProcessList* pl = (ProcessList*) spl;
-   ProcessList_init(pl, Class(SolarisProcess), usersTable, pidWhiteList, userId);
+   ProcessList_init(pl, Class(SolarisProcess), usersTable, pidWhiteList, userId, attachToId);
 
    spl->kd = kstat_open();
 
@@ -265,6 +265,10 @@ int SolarisProcessList_walkproc(psinfo_t *_psinfo, lwpsinfo_t *_lwpsinfo, void *
    } 
    Process *proc             = ProcessList_getProcess(pl, getpid, &preExisting, (Process_New) SolarisProcess_new);
    SolarisProcess *sproc     = (SolarisProcess*) proc;
+
+   if (pl->attachToId > 0 && _psinfo->pr_zoneid != pl->attachToId) {
+       return 0;
+   }
 
    gettimeofday(&tv, NULL);
 

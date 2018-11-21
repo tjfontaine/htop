@@ -64,14 +64,16 @@ typedef struct ProcessList_ {
 
    int cpuCount;
 
+   unsigned int attachToId;
+
 } ProcessList;
 
-ProcessList* ProcessList_new(UsersTable* ut, Hashtable* pidWhiteList, uid_t userId);
+ProcessList* ProcessList_new(UsersTable* ut, Hashtable* pidWhiteList, uid_t userId, unsigned int attachToId);
 void ProcessList_delete(ProcessList* pl);
 void ProcessList_goThroughEntries(ProcessList* pl);
 
 
-ProcessList* ProcessList_init(ProcessList* this, ObjectClass* klass, UsersTable* usersTable, Hashtable* pidWhiteList, uid_t userId);
+ProcessList* ProcessList_init(ProcessList* this, ObjectClass* klass, UsersTable* usersTable, Hashtable* pidWhiteList, uid_t userId, unsigned int attachToId);
 
 void ProcessList_done(ProcessList* this);
 

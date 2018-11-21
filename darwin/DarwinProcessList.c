@@ -132,10 +132,10 @@ struct kinfo_proc *ProcessList_getKInfoProcs(size_t *count) {
 }
 
 
-ProcessList* ProcessList_new(UsersTable* usersTable, Hashtable* pidWhiteList, uid_t userId) {
+ProcessList* ProcessList_new(UsersTable* usersTable, Hashtable* pidWhiteList, uid_t userId, unsigned int attachToId) {
    DarwinProcessList* this = xCalloc(1, sizeof(DarwinProcessList));
 
-   ProcessList_init(&this->super, Class(Process), usersTable, pidWhiteList, userId);
+   ProcessList_init(&this->super, Class(Process), usersTable, pidWhiteList, userId, attachToId);
 
    /* Initialize the CPU information */
    this->super.cpuCount = ProcessList_allocateCPULoadInfo(&this->prev_load);

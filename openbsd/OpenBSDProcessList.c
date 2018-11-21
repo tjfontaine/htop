@@ -61,7 +61,7 @@ typedef struct OpenBSDProcessList_ {
 
 static long fscale;
 
-ProcessList* ProcessList_new(UsersTable* usersTable, Hashtable* pidWhiteList, uid_t userId) {
+ProcessList* ProcessList_new(UsersTable* usersTable, Hashtable* pidWhiteList, uid_t userId, unsigned int attachToId) {
    int mib[] = { CTL_HW, HW_NCPU };
    int fmib[] = { CTL_KERN, KERN_FSCALE };
    int i, e;
@@ -73,7 +73,7 @@ ProcessList* ProcessList_new(UsersTable* usersTable, Hashtable* pidWhiteList, ui
    opl = xCalloc(1, sizeof(OpenBSDProcessList));
    pl = (ProcessList*) opl;
    size = sizeof(pl->cpuCount);
-   ProcessList_init(pl, Class(OpenBSDProcess), usersTable, pidWhiteList, userId);
+   ProcessList_init(pl, Class(OpenBSDProcess), usersTable, pidWhiteList, userId, attachToId);
 
    e = sysctl(mib, 2, &pl->cpuCount, &size, NULL, 0);
    if (e == -1 || pl->cpuCount < 1) {

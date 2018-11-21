@@ -46,7 +46,7 @@ typedef struct SolarisProcessList_ {
 
 char* SolarisProcessList_readZoneName(kstat_ctl_t* kd, SolarisProcess* sproc);
 
-ProcessList* ProcessList_new(UsersTable* usersTable, Hashtable* pidWhiteList, uid_t userId);
+ProcessList* ProcessList_new(UsersTable* usersTable, Hashtable* pidWhiteList, uid_t userId, unsigned int attachToId);
 
 void ProcessList_delete(ProcessList* pl);
 

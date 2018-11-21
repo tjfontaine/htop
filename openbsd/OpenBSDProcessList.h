@@ -42,7 +42,7 @@ typedef struct OpenBSDProcessList_ {
 #define CLAMP(x, low, high)	(((x) > (high)) ? (high) : MAXIMUM(x, low))
 #endif
 
-ProcessList* ProcessList_new(UsersTable* usersTable, Hashtable* pidWhiteList, uid_t userId);
+ProcessList* ProcessList_new(UsersTable* usersTable, Hashtable* pidWhiteList, uid_t userId, unsigned int attachToId);
 
 void ProcessList_delete(ProcessList* this);
 

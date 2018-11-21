@@ -94,6 +94,8 @@ typedef struct LinuxProcessList_ {
    struct nl_sock *netlink_socket;
    int netlink_family;
    #endif
+
+   char procPrefix[MAX_NAME];
 } LinuxProcessList;
 
 #ifndef PROCDIR
@@ -101,11 +103,11 @@ typedef struct LinuxProcessList_ {
 #endif
 
 #ifndef PROCSTATFILE
-#define PROCSTATFILE PROCDIR "/stat"
+#define PROCSTATFILE "/stat"
 #endif
 
 #ifndef PROCMEMINFOFILE
-#define PROCMEMINFOFILE PROCDIR "/meminfo"
+#define PROCMEMINFOFILE "/meminfo"
 #endif
 
 #ifndef PROCTTYDRIVERSFILE
@@ -229,19 +231,30 @@ static void LinuxProcessList_initNetlinkSocket(LinuxProcessList* this) {
 
 #endif
 
-ProcessList* ProcessList_new(UsersTable* usersTable, Hashtable* pidWhiteList, uid_t userId) {
+ProcessList* ProcessList_new(UsersTable* usersTable, Hashtable* pidWhiteList, uid_t userId, unsigned int attachToId) {
    LinuxProcessList* this = xCalloc(1, sizeof(LinuxProcessList));
    ProcessList* pl = &(this->super);
 
-   ProcessList_init(pl, Class(LinuxProcess), usersTable, pidWhiteList, userId);
+   ProcessList_init(pl, Class(LinuxProcess), usersTable, pidWhiteList, userId, attachToId);
    LinuxProcessList_initTtyDrivers(this);
+
+   if (attachToId > 0) {
+      xSnprintf(this->procPrefix, sizeof(this->procPrefix) - 1, "%s/%d/root/%s", PROCDIR, attachToId, PROCDIR);
+      if (access(this->procPrefix, R_OK) != 0) {
+         CRT_fatalError("Failed to open filtered procfs, check that it exists");
+      }
+   } else {
+      xSnprintf(this->procPrefix, sizeof(this->procPrefix) - 1, "%s", PROCDIR);
+   }
 
    #ifdef HAVE_DELAYACCT
    LinuxProcessList_initNetlinkSocket(this);
    #endif
 
    // Update CPU count:
-   FILE* file = fopen(PROCSTATFILE, "r");
+   char statFile[MAX_NAME];
+   xSnprintf(statFile, MAX_NAME - 1, "%s/%s", this->procPrefix, PROCSTATFILE);
+   FILE* file = fopen(statFile, "r");
    if (file == NULL) {
       CRT_fatalError("Cannot open " PROCSTATFILE);
    }
@@ -919,8 +932,12 @@ static inline void LinuxProcessList_scanMemoryInfo(ProcessList* this) {
    unsigned long long int swapFree = 0;
    unsigned long long int shmem = 0;
    unsigned long long int sreclaimable = 0;
+   LinuxProcessList *lp = (LinuxProcessList*)this;
 
-   FILE* file = fopen(PROCMEMINFOFILE, "r");
+   char meminfoFile[FILENAME_MAX];
+   xSnprintf(meminfoFile, sizeof(meminfoFile) - 1, "%s/%s", lp->procPrefix, PROCMEMINFOFILE);
+
+   FILE* file = fopen(meminfoFile, "r");
    if (file == NULL) {
       CRT_fatalError("Cannot open " PROCMEMINFOFILE);
    }
@@ -965,8 +982,9 @@ static inline void LinuxProcessList_scanMemoryInfo(ProcessList* this) {
 }
 
 static inline double LinuxProcessList_scanCPUTime(LinuxProcessList* this) {
-
-   FILE* file = fopen(PROCSTATFILE, "r");
+   char statFile[MAX_NAME];
+   xSnprintf(statFile, sizeof(statFile) - 1, "%s/%s", this->procPrefix, PROCSTATFILE);
+   FILE* file = fopen(statFile, "r");
    if (file == NULL) {
       CRT_fatalError("Cannot open " PROCSTATFILE);
    }
@@ -1042,5 +1060,6 @@ void ProcessList_goThroughEntries(ProcessList* super) {
 
    struct timeval tv;
    gettimeofday(&tv, NULL);
-   LinuxProcessList_recurseProcTree(this, PROCDIR, NULL, period, tv);
+
+   LinuxProcessList_recurseProcTree(this, this->procPrefix, NULL, period, tv);
 }

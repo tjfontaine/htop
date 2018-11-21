@@ -86,12 +86,12 @@ static int MIB_kern_cp_time[2];
 static int MIB_kern_cp_times[2];
 static int kernelFScale;
 
-ProcessList* ProcessList_new(UsersTable* usersTable, Hashtable* pidWhiteList, uid_t userId) {
+ProcessList* ProcessList_new(UsersTable* usersTable, Hashtable* pidWhiteList, uid_t userId, unsigned int attachToId) {
    size_t len;
    char errbuf[_POSIX2_LINE_MAX];
    FreeBSDProcessList* fpl = xCalloc(1, sizeof(FreeBSDProcessList));
    ProcessList* pl = (ProcessList*) fpl;
-   ProcessList_init(pl, Class(FreeBSDProcess), usersTable, pidWhiteList, userId);
+   ProcessList_init(pl, Class(FreeBSDProcess), usersTable, pidWhiteList, userId, attachToId);
 
    // physical memory in system: hw.physmem
    // physical page size: hw.pagesize
@@ -437,6 +437,10 @@ void ProcessList_goThroughEntries(ProcessList* this) {
       FreeBSDProcess* fp = (FreeBSDProcess*) proc;
 
       proc->show = ! ((hideKernelThreads && Process_isKernelThread(fp)) || (hideUserlandThreads && Process_isUserlandThread(proc)));
+
+      if (this->attachToId > 0 && kproc->ki_jid == this->attachToId) {
+         proc->show = false;
+      }
 
       if (!preExisting) {
          fp->jid = kproc->ki_jid;

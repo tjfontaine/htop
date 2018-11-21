@@ -78,7 +78,7 @@ void ProcessList_goThroughEntries(ProcessList* pl);
 
 }*/
 
-ProcessList* ProcessList_init(ProcessList* this, ObjectClass* klass, UsersTable* usersTable, Hashtable* pidWhiteList, uid_t userId) {
+ProcessList* ProcessList_init(ProcessList* this, ObjectClass* klass, UsersTable* usersTable, Hashtable* pidWhiteList, uid_t userId, unsigned int attachToId) {
    this->processes = Vector_new(klass, true, DEFAULT_SIZE);
    this->processTable = Hashtable_new(140, false);
    this->usersTable = usersTable;
@@ -103,6 +103,8 @@ ProcessList* ProcessList_init(ProcessList* this, ObjectClass* klass, UsersTable*
 #endif
 
    this->following = -1;
+
+   this->attachToId = attachToId;
 
    return this;
 }
